@@ -35,7 +35,7 @@ def llamadas_distribuidas():
     except Exception as e:
         print("Error:", e)
         # Retorna una lista vacía en caso de error o si no se cumple ninguna condición
-        return jsonify([])
+        return jsonify(e)
 
 
 CORS(app)
