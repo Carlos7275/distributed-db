@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { addr } from '../env/env';
+import { addr } from "../env/env";
 
 const ip = addr;
 
@@ -9,11 +9,12 @@ const ip = addr;
   providedIn: 'root'
 })
 export class ApiService {
+  headers = new HttpHeaders({ 'Content-Type': 'application/json; charset=utf-8' });
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  getCalls(data:any): Observable<any[]> {
-    const url = `${ip}/calls_d?c=${data.c}&d=${data.d}&e=${data.e}&d1=${data.d1}&d2=${data.d2}`;
-    return this.http.get<any[]>(url);
+  getCalls(data: any): Observable<any[]> {
+    const url = `${ip}/calls_d`;
+    return this.http.post<any[]>(url, JSON.stringify(data), { headers: this.headers });
   }
 }

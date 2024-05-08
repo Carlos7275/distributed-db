@@ -1,6 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { ApiService } from './services/api.service';
 import { ReportService } from './services/report.service';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatSort } from '@angular/material/sort';
+import { MatPaginator } from '@angular/material/paginator';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -16,6 +19,31 @@ export class AppComponent {
     O: 'Obregon'
   }
 
+  @ViewChild(MatPaginator, { static: false })
+  set paginator(value: MatPaginator) {
+    if (this.dataSource) {
+      this.dataSource.paginator = value;
+    }
+  }
+
+  //Establece un Orden Utilizando Datos de la API
+  @ViewChild(MatSort, { static: false })
+  set sort(value: MatSort) {
+    if (this.dataSource) {
+      this.dataSource.sort = value;
+    }
+  }
+
+  dataSource = new MatTableDataSource<any>();
+  displayedColumns: string[] = [
+
+    'src',
+    'dst',
+    'duration',
+    'disposition',
+    'calldate',
+    "ciudad"
+  ];
   title = 'webapp';
 
   results = false;
@@ -25,45 +53,46 @@ export class AppComponent {
   fechaInicio: string = ''
   fechaFin: string = ''
 
+  origen: string = '';
+  destino: string = '';
+
   filtro: string = '';
   ciudad: string = '';
   estadoLlamada: string = '';
   estados = [
-    { value: 'A', status: 'Contestada' },
-    { value: 'B', status: 'Ocupado' },
-    { value: 'N', status: 'Sin Respuesta' },
-    { value: 'F', status: 'Fallida' }
+    { value: 'ANSWERED', status: 'Contestada' },
+    { value: 'BUSY', status: 'Ocupado' },
+    { value: 'NOT ANSWERED', status: 'Sin Respuesta' },
+    { value: 'FAILED', status: 'Fallida' }
   ];
   ciudades = [
-    { value: 'M', name: 'Mochis' },
-    { value: 'N', name: 'Navojoa' },
-    { value: 'O', name: 'Obregon' }
+    { value: 'Los Mochis', name: 'Mochis' },
+    { value: 'Navojoa', name: 'Navojoa' },
+    { value: 'Obregon', name: 'Obregon' }
   ];
 
   constructor(private api: ApiService, private PDF: ReportService) { }
 
   ngOnInit(): void {
+    this.buscar()
   }
 
   buscar() {
     // Llama al método buscar() de ApiService
-    console.log(this.fechaFin, this.fechaInicio)
     this.api.getCalls({
-      d: '', c: this.ciudad, e: this.estadoLlamada, d1: this.fechaInicio, d2: this.fechaFin
+      src: this.isNull(this.origen), dst: this.isNull(this.destino), city: this.isNull(this.ciudad), status: this.isNull(this.estadoLlamada), d1: this.isNull(this.fechaInicio), d2: this.isNull(this.fechaFin)
     }).subscribe((data: any) => {
       this.results = true;
-      this.calls = data;
-      console.log(data)
+       this.dataSource.data=data;
     });
+  }
+
+  isNull(value: any) {
+    return (value == '') ? null : value;
   }
   generarReporte() {
-    // Llama al método buscar() de ApiService
-    console.log(this.fechaFin, this.fechaInicio)
-    this.api.getCalls({
-      d: '', c: this.ciudad, e: this.estadoLlamada, d1: this.fechaInicio, d2: this.fechaFin
-    }).subscribe((data: any) => {
-      this.PDF.exportAsPDF(); // Pasar los datos de la tabla a exportAsPDF()
-    });
-  }
+    Promise.all([this.PDF.exportAsPDF()])
+
+}
 
 }
